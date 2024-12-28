@@ -283,6 +283,31 @@ const wakeUpIntentHandler = {
 //TODO: Fix yes and no intent handlers
 
 const YesIntentHandler = {
+    //get a confirmation from the user. this one will return true for yes and false for no. return values
+    //it should be using the Alexa Developer Console's built-in intents (AMAZON.YesIntent and AMAZON.NoIntent)
+
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.YesIntent';
+    },
+    handle(handlerInput) {
+        const { attributesManager } = handlerInput;
+        const requestAttributes = attributesManager.getRequestAttributes();
+        const sessionAttributes = attributesManager.getSessionAttributes();
+        
+        yesResponse = true;
+        noResponse = false;
+
+        return handlerInput.responseBuilder
+        
+            //.speak('Test')
+            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .getResponse();
+    }
+}
+
+/*
+const YesIntentHandler = {
     canHandle(handlerInput) {
         const { attributesManager } = handlerInput;
         const sessionAttributes = attributesManager.getSessionAttributes();
@@ -306,6 +331,7 @@ const YesIntentHandler = {
             .getResponse();
     }
 };
+*/
 
 const NoIntentHandler = {
     canHandle(handlerInput) {
