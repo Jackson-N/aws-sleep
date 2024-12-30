@@ -3,9 +3,12 @@
  * Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
  * session persistence, api calls, and more.
  * */
-app.use(express.static(__dirname + '/public')); //Serves resources from public folder
+const util = require('util');
+const express = require('express');
+const app = express();
+const { ExpressAdapter } = require('ask-sdk-express-adapter');
 const Alexa = require('ask-sdk-core');
-
+app.use(express.static(__dirname + '/public')); //Serves resources from public folder
 //NOTE: when working in VS Code, remember to import to ADC after making changes
 
 
