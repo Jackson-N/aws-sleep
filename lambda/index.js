@@ -30,6 +30,7 @@ let timeMinDiff;
 let yesResponse = null;
 let noResponse = null;
 
+
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
