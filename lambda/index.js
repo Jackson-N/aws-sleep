@@ -7,7 +7,7 @@ app.use(express.static(__dirname + '/public')); //Serves resources from public f
 const Alexa = require('ask-sdk-core');
 
 //NOTE: when working in VS Code, remember to import to ADC after making changes
-
+//NOTE: meow :3
 
 let startHour = null;
 let startMinute = null;
