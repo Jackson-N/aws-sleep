@@ -7,7 +7,7 @@ const Alexa = require('ask-sdk-core');
 const util = require('util');
 const express = require('express');
 const app = express();
-//const { ExpressAdapter } = require('ask-sdk-express-adapter');
+const { ExpressAdapter } = require('ask-sdk-express-adapter');
 app.use(express.static(__dirname + '/public')); //Serves resources from public folder
 //NOTE: when working in VS Code, remember to import to ADC after making changes
 
