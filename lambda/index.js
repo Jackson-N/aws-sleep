@@ -6,7 +6,6 @@
 const Alexa = require('ask-sdk-core');
 const util = require('util');
 const express = require('express');
-const app = express();
 const { ExpressAdapter } = require('ask-sdk-express-adapter');
 app.use(express.static(__dirname + '/public')); //Serves resources from public folder
 //NOTE: when working in VS Code, remember to import to ADC after making changes
@@ -369,7 +368,7 @@ const NoIntentHandler = {
  * payloads to the handlers above. Make sure any new handlers or interceptors you've
  * defined are included below. The order matters - they're processed top to bottom 
  * */
-exports.handler = Alexa.SkillBuilders.custom()
+const skill = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
         startBedTimeIntentHandler,
@@ -384,4 +383,10 @@ exports.handler = Alexa.SkillBuilders.custom()
     .addErrorHandlers(
         ErrorHandler)
     .withCustomUserAgent('sample/hello-world/v1.2')
-    .lambda();
+    .create();
+
+    const adapter = new ExpressAdapter(skill, false, false);
+    const app = express();
+
+    app.post('/', adapter.getRequestHandlers());
+    app.listen(3000);
