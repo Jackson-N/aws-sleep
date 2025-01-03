@@ -4,12 +4,13 @@
  * session persistence, api calls, and more.
  * */
 const Alexa = require('ask-sdk-core');
+/*
 const util = require('util');
 const express = require('express');
 const { ExpressAdapter } = require('ask-sdk-express-adapter');
 app.use(express.static(__dirname + '/public')); //Serves resources from public folder
 //NOTE: when working in VS Code, remember to import to ADC after making changes
-
+*/
 
 let startHour = null;
 let startMinute = null;
@@ -177,9 +178,7 @@ const startBedTimeIntentHandler = {
         const {requestEnvelope} = handlerInput;
         const {intent} = requestEnvelope.request;
         
-        
         let speechText = 'That is not a valid response. Please try again.';
-        
         
         startHour = Alexa.getSlotValue(handlerInput.requestEnvelope, 'hour');
         startMinute = Alexa.getSlotValue(handlerInput.requestEnvelope, 'minute');
@@ -188,7 +187,33 @@ const startBedTimeIntentHandler = {
         wakeHour = Alexa.getSlotValue(handlerInput.requestEnvelope, 'wakeHour');
         wakeMinute = Alexa.getSlotValue(handlerInput.requestEnvelope, 'wakeMinute');
         wakePhase = Alexa.getSlotValue(handlerInput.requestEnvelope, 'wakePhase');
-    
+        
+        
+            
+        speechText = 'Bed time is set for: ' + startHour + ' ' + startMinute + ' ' + startPhase + 
+        '. And Wake Up time is set for ' +  wakeHour + ' ' + wakeMinute + ' ' + wakePhase + '. Sleep well!';
+        
+        //const bedTime = Alexa.getSlotValue(handlerInput.requestEnvelope, 'bed');
+
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+
+const wakeUpIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'wakeUpIntent'; //SomeIntent is from the 'Build' tab
+    },
+    handle(handlerInput) {
+        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        const {requestEnvelope} = handlerInput;
+        const {intent} = requestEnvelope.request;
+        
+        let sleepPoints = 10;
+        let sleepStreak = 0;
         
         if (startMinute === 'o clock')
         {
@@ -227,34 +252,19 @@ const startBedTimeIntentHandler = {
             timeMinDiff = parseInt((wakeMinute + startMinute) % 60);
             timeHourDiff--;
         }
-            
-        speechText = 'Bed time is set for: ' + startHour + ' ' + startMinute + ' ' + startPhase + 
-        '. And Wake Up time is set for' +  wakeHour + ' ' + wakeMinute + ' ' + wakePhase + '. Sleep well!';
-        
-        //const bedTime = Alexa.getSlotValue(handlerInput.requestEnvelope, 'bed');
-
-        return handlerInput.responseBuilder
-            .speak(speechText)
-            .reprompt(speechText)
-            .getResponse();
-    }
-};
-
-const wakeUpIntentHandler = {
-    canHandle(handlerInput) {
-        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-            && handlerInput.requestEnvelope.request.intent.name === 'wakeUpIntent'; //SomeIntent is from the 'Build' tab
-    },
-    handle(handlerInput) {
-        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-        const {requestEnvelope} = handlerInput;
-        const {intent} = requestEnvelope.request;
         
         remHour = Alexa.getSlotValue(handlerInput.requestEnvelope, 'reminderHour');
         remMinute = Alexa.getSlotValue(handlerInput.requestEnvelope, 'reminderMinute');
         remPhase = Alexa.getSlotValue(handlerInput.requestEnvelope, 'reminderPhase');
         
+        timeHourDiff = Alexa.getSlotValue(handlerInput.requestEnvelope, 'hourDiff');
+        timeMinDiff = Alexa.getSlotValue(handlerInput.requestEnvelope, 'minDiff');
+        
+        
         let isSnoozing = false;
+        
+        yesResponse === false;
+        noResponse === true;
         
         if (yesResponse === true && noResponse === false)
         {
@@ -263,17 +273,36 @@ const wakeUpIntentHandler = {
             {
                 timeMinDiff = timeMinDiff % 60;
                 timeHourDiff++;
+                sleepPoints -= 5;
+                sleepStreak = 0;
             }
             isSnoozing = true;
             //Alexa is weird and setting alarms is annoying. This is where it would go and add more time.
+            sleepPoints--;
         }
         else if (yesResponse === false && noResponse === true)
         {
             isSnoozing = false;
+            sleepPoints++;
         }
         
-        const sleepText = 'You have slept for ' + timeHourDiff + ' hours and ' + timeMinDiff + ' minutes.';
-        const speechText = 'Alright, bed time reminder is set for' +  remHour + ' ' + remMinute + ' ' + remPhase + '. Have a good day!';
+        if (timeHourDiff === 9 || timeHourDiff === 8)
+        {
+            sleepPoints += 10;
+            sleepStreak++;
+            if (sleepStreak >= 1)
+            {
+                sleepPoints * sleepStreak;
+            }
+        }
+        if (startPhase !== wakePhase)
+        {
+            sleepPoints += 5;
+        }
+        
+        const sleepText = 'You have slept for ' + timeHourDiff + ' hours and ' + timeMinDiff + 
+        ' minutes. Your points that you eanred for sleeping are: ' + sleepPoints;
+        const speechText = 'Alright, bed time reminder is set for ' +  remHour + ' ' + remMinute + ' ' + remPhase + '. Have a good day!';
         
         return handlerInput.responseBuilder
             .speak(sleepText)
@@ -368,7 +397,7 @@ const NoIntentHandler = {
  * payloads to the handlers above. Make sure any new handlers or interceptors you've
  * defined are included below. The order matters - they're processed top to bottom 
  * */
-const skill = Alexa.SkillBuilders.custom()
+exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
         startBedTimeIntentHandler,
@@ -383,10 +412,12 @@ const skill = Alexa.SkillBuilders.custom()
     .addErrorHandlers(
         ErrorHandler)
     .withCustomUserAgent('sample/hello-world/v1.2')
-    .create();
+    .lambda();
 
+/*
     const adapter = new ExpressAdapter(skill, false, false);
     const app = express();
 
     app.post('/', adapter.getRequestHandlers());
     app.listen(3033);
+*/
